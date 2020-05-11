@@ -85,7 +85,7 @@ class polynomial:
 		assert abs(power<self.size/2)
 		'''
 		indexing of coef: [-(size/2)+1, -(size/2)+2, ..., (size/2)-1]
-		index: expoenent
+		index: exponent
 		value at index: coefficient
 		'''
 		self.coef[int(power+self.size/2)] = coef
