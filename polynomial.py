@@ -95,59 +95,55 @@ def mod_polynomial(p1,p2):
     
 
 class polynomial:
+
     # polynomial up to 64 terms
-    def __init__(self, size=64):
-        self.coef = np.zeros(size)
-        self.size = size
-        self.max_pow = self.size/2 -1
-        self.min_pow = -self.size/2
+    def __init__(self,size=64):
+      self.coef = np.zeros(size)
+      self.size = size
 
-    def set_coef(self, power, coef):
-        assert abs(power < self.size / 2)
-        self.coef[int(self.size / 2 + power)] = coef
+    def set_coef(self,power,coef):
+      assert abs(power<self.size/2)
+      '''
+      indexing of coef: [-(size/2)+1, -(size/2)+2, ..., (size/2)-1]
+      index: exponent
+      value at index: coefficient
+      '''
+      self.coef[int(power+self.size/2)] = coef
 
-    def get_coef(self, index):
-        return self.coef[index]
+    def get_coef(self,index):
+      return self.coef[index]
 
-    def get_pow(self, index):
-        return (
-            index - self.size / 2
-            if index >= (self.size / 2)
-            else index - self.size / 2
-        )
+    def get_pow(self,index):
+      return index-self.size/2 if index>=(self.size/2) else index - self.size/2
+
 
     def get_index(self, power):
-        if power>=0:
-            assert power<= (self.size/2)-1
-        else:
-            assert power>= -(self.size/2)
-        return self.size/2 + power
+      if power>=0:
+          assert power<= (self.size/2)-1
+      else:
+          assert power>= -(self.size/2)
+      return self.size/2 + power
 
     def __str__(self):
-        nzero = np.nonzero(self.coef)
-        if nzero[0].size == 0:
-            r = "0"
-        else:
-            r = ""
-            it = np.nditer(nzero)
+      nzero = np.nonzero(self.coef)
+      if(nzero[0].size == 0):
+        r = "0"
+      else:
+        r = ""
+        it = np.nditer(nzero)
+        nxt = next(it)
+        r += str(self.get_coef(nxt)) + "x^" + str(self.get_pow(nxt)) + " "
+
+
+
+        while(True):
+          try:
             nxt = next(it)
-            r += str(self.get_coef(nxt)) + "x^" + str(self.get_pow(nxt)) + " "
+            r += "+ " + str(self.get_coef(nxt)) + "x^" + str(self.get_pow(nxt)) + " "
+          except StopIteration:
+            break
 
-            while True:
-                try:
-                    nxt = next(it)
-                    r += (
-                        "+ "
-                        + str(self.get_coef(nxt))
-                        + "x^"
-                        + str(self.get_pow(nxt))
-                        + " "
-                    )
-                except StopIteration:
-                    break
-
-        return r
-        # r = ""
+      return r
 
 
 p1 = polynomial()
