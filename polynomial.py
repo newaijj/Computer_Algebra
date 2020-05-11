@@ -2,6 +2,30 @@ import numpy as np
 from logging import warning
 from itertools import takewhile
 
+"""
+CLASS IMPLEMENTED: POLYNOMIAL
+    -univariable only
+
+- ATTRIBUTES
+    - size  - total number of coefficients stored (defaults to 64)
+    - min_power     - minimum power coefficient that can be stored (defaults to -32)
+    - max_power     - maximum power coefficient that can be stored (defaults to 31)
+
+- METHODS
+    - set_coef(power, coefficient)
+    - get_coef(power)
+    - max_nonzero_pow()     - maximum power with non-zero coefficient stored
+
+- FUNCTIONS
+    - add_polynomial() -        accepts any number of polynomial objects as input
+    - mul_polynomial() -        accepts any number of polynomial objects as input
+    - sub_polynomial(p1,p2) -   (p1 - p2)
+    - div_polynomial(p1,p2) -   (p1 / p2)
+    - mod_polynomial(p1,p2) -   (p1 % p2); returns (p_quotient , p_remainder) 
+
+
+"""
+
 
 def np_shift(np_arr, val):
     assert np_arr.ndim == 1
