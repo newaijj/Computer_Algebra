@@ -83,10 +83,12 @@ class polynomial:
 
 	def set_coef(self,power,coef):
 		assert abs(power<self.size/2)
-		if power>=0:
-			self.coef[int(power+self.size/2)] = coef
-		else:
-			self.coef[int(self.size/2+power)] = coef
+		'''
+		indexing of coef: [-(size/2)+1, -(size/2)+2, ..., (size/2)-1]
+		index: expoenent
+		value at index: coefficient
+		'''
+		self.coef[int(power+self.size/2)] = coef
 
 	def get_coef(self,index):
 		return self.coef[index]
