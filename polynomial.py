@@ -86,76 +86,109 @@ def div_polynomial(p1, p2):
     return p_out
 
 
-def mod_polynomial(p1,p2):
-    for p in range(p1.min_pow,-1):
-        assert p1.get_coef(p1.get_index(p)) == 0
-    for p in range(p2.min_pow,-1):
-        assert p2.get_coef(p2.get_index(p)) == 0
+def mod_polynomial(p1, p2):
+    for p in range(p1.min_pow, -1):
+        assert p1.get_coef(p) == 0
+    for p in range(p2.min_pow, -1):
+        assert p2.get_coef(p) == 0
+    assert p1.max_nonzero_pow() >= p2.max_nonzero_pow()
 
-    
+    p1_max = p1.max_nonzero_pow()
+    p2_max = p2.max_nonzero_pow()
+    p_q = polynomial()
+    for p in range(p1_max, p2_max - 1, -1):
+        fac = p1.get_coef(p) / p2.get_coef(p2_max)
+        p_q.set_coef(p - p2_max, fac)
+        if fac == 0:
+            continue
+        p_fac = polynomial(size=p2.size)
+        p_fac.set_coef(p - p2_max, fac)
+        p1 = sub_polynomial(p1, mul_polynomial(p2, p_fac))
+
+    return p_q, p1
+
 
 class polynomial:
-
     # polynomial up to 64 terms
-    def __init__(self,size=64):
-      self.coef = np.zeros(size)
-      self.size = size
+    def __init__(self, size=64):
+        self.coef = np.zeros(size)
+        self.size = size
+        self.min_pow = int(-size / 2)
+        self.max_pow = int(size / 2 - 1)
 
-    def set_coef(self,power,coef):
-      assert abs(power<self.size/2)
-      '''
+    def set_coef(self, power, coef):
+        assert abs(power < self.size / 2)
+        """
       indexing of coef: [-(size/2)+1, -(size/2)+2, ..., (size/2)-1]
       index: exponent
       value at index: coefficient
-      '''
-      self.coef[int(power+self.size/2)] = coef
+      """
+        self.coef[int(power + self.size / 2)] = coef
 
-    def get_coef(self,index):
-      return self.coef[index]
+    def get_coef_index(self, index):
+        return self.coef[index]
 
-    def get_pow(self,index):
-      return index-self.size/2 if index>=(self.size/2) else index - self.size/2
+    def get_coef(self, power):
+        return self.coef[self.get_index(power)]
 
+    def get_pow(self, index):
+        return int(
+            index - self.size / 2
+            if index >= (self.size / 2)
+            else index - self.size / 2
+        )
 
     def get_index(self, power):
-      if power>=0:
-          assert power<= (self.size/2)-1
-      else:
-          assert power>= -(self.size/2)
-      return self.size/2 + power
+        if power >= 0:
+            assert power <= (self.size / 2) - 1
+        else:
+            assert power >= -(self.size / 2)
+        return int(self.size / 2) + power
+
+    def max_nonzero_pow(self):
+        return self.get_pow(np.max(np.nonzero(self.coef)))
 
     def __str__(self):
-      nzero = np.nonzero(self.coef)
-      if(nzero[0].size == 0):
-        r = "0"
-      else:
-        r = ""
-        it = np.nditer(nzero)
-        nxt = next(it)
-        r += str(self.get_coef(nxt)) + "x^" + str(self.get_pow(nxt)) + " "
-
-
-
-        while(True):
-          try:
+        nzero = np.nonzero(self.coef)
+        if nzero[0].size == 0:
+            r = "0"
+        else:
+            r = ""
+            it = np.nditer(nzero)
             nxt = next(it)
-            r += "+ " + str(self.get_coef(nxt)) + "x^" + str(self.get_pow(nxt)) + " "
-          except StopIteration:
-            break
+            r += (
+                str(self.get_coef_index(nxt))
+                + "x^"
+                + str(self.get_pow(nxt))
+                + " "
+            )
 
-      return r
+            while True:
+                try:
+                    nxt = next(it)
+                    r += (
+                        "+ "
+                        + str(self.get_coef_index(nxt))
+                        + "x^"
+                        + str(self.get_pow(nxt))
+                        + " "
+                    )
+                except StopIteration:
+                    break
+
+        return r
 
 
 p1 = polynomial()
-p1.set_coef(-1, -1)
-p1.set_coef(0, 2)
-p1.set_coef(1, 3)
+p1.set_coef(0, 8)
+p1.set_coef(1, 8)
+p1.set_coef(2, 8)
+p1.set_coef(3, 8)
 print("p1: ", p1)
 p2 = polynomial()
-p2.set_coef(0, 4)
-p2.set_coef(1, 2)
+p2.set_coef(1, 1)
+p2.set_coef(0, 2)
+# p2.set_coef(2, 3)
 print("p2: ", p2)
-p3 = polynomial()
-p3.set_coef(1, 10)
-print("p3: ", p3)
-print("p2/p3: ", div_polynomial(p2, p3))
+p_q, p_r = mod_polynomial(p1, p2)
+print("p1 mod p2: ", p_q, "      ", p_r)
