@@ -1,57 +1,59 @@
 import numpy as np
 from logging import warning
 from itertools import takewhile
+import copy
 
 """
 CLASS IMPLEMENTED: POLYNOMIAL
     -univariable only
+    -coefficients mod N
 
 - ATTRIBUTES
     - size  - total number of coefficients stored (defaults to 64)
-    - min_power     - minimum power coefficient that can be stored (defaults to -32)
-    - max_power     - maximum power coefficient that can be stored (defaults to 31)
+    - degree - degree of polynomial (maintained on insertions, but not for direct access to p.coef)
 
 - METHODS
     - set_coef(power, coefficient)
     - get_coef(power)
-    - max_nonzero_pow()     - maximum power with non-zero coefficient stored
+    - update_degree(power=None) - checks if degree needs to be updated. If power is specified, checks if that power is larger than current degree and sets it if it is
+    - copy_meta()   - returns polynomial with copy of all meta variables but empty coefficients
 
-- FUNCTIONS
+- FUNCTIONS - POLYNOMIAL
     - add_polynomial() -        accepts any number of polynomial objects as input
     - mul_polynomial() -        accepts any number of polynomial objects as input
     - sub_polynomial(p1,p2) -   (p1 - p2)
-    - mod_polynomial(p1,p2) -   (p1 % p2); returns (p_quotient , p_remainder) 
+    - mod_polynomial(p1,p2) -   (p1 % p2); returns (p_quotient , p_remainder) given global N
+    - exp_polynomial(p,e)   -   returns (p^e), e must be integer
+    - gcd_polynomial(p1,p2) -   return GCD of the two polynomials given global N
 
-
+- FUNCTION - MISC
+    - mul_inv(a)    -   calculates multiplicative inverse given global N
 """
 
-
-def np_shift(np_arr, val):
-    assert np_arr.ndim == 1
-    assert np_arr.shape[0] > val
-
-    shift = np.array(np_arr)
-    np_arr[0 : -val - 1] = shift[val:-1]
-    np_arr[-val:-1] = shift[0 : val - 1]
-    return np_arr
+N = 11
 
 
 def add_polynomial(*args):
+    max_size = 0
     for p in args:
         assert isinstance(p, polynomial)
-        assert p.size == args[0].size
-    p_out = polynomial(size=args[0].size)
+        max_size = max(max_size, p.size)
+    p_out = polynomial(size=max_size)
 
     for p in args:
-        p_out.coef += p.coef
+        out = np.zeros(max_size)
+        out[0 : (p.degree + 1)] = p.coef[0 : (p.degree + 1)]
+        p_out.coef += out
+        p_out.coef = p_out.coef % N
 
+    p_out.update_degree()
     return p_out
 
 
 def add_inv_polynomial(p1):
     assert isinstance(p1, polynomial)
-    p_out = polynomial(size=p1.size)
-    p_out.coef = -p1.coef
+    p_out = copy.deepcopy(p1)
+    p_out.coef = -p_out.coef
     return p_out
 
 
@@ -61,25 +63,24 @@ def sub_polynomial(p1, p2):
 
 def mul_2_polynomial(p1, p2):
     assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
-    assert p1.size == p2.size
 
-    p_out = polynomial(size=p1.size)
-    p_out.coef = np.convolve(p1.coef, p2.coef, "same")
-    """
-	shift = np.array(p_out.coef)
-	p_out.coef[0:-2] = shift[1:-1]
-	p_out.coef[-1] = shift[0]
+    np_out = np.convolve(p1.coef[0 : p1.degree + 1], p2.coef[0 : p2.degree + 1])
+    p_out = polynomial(size=max(p1.size, p2.size, np_out.shape[0]))
+    p_out.degree = np_out.shape[0] - 1
+    p_out.coef[0 : np_out.shape[0]] = np_out
+    p_out.coef = p_out.coef % N
 
-	"""
-    p_out.coef = np_shift(p_out.coef, 1)
     return p_out
 
 
 def mul_polynomial(*args):
+    max_size = 0
     for p in args:
         assert isinstance(p, polynomial)
-        assert p.size == args[0].size
-    p_out = args[0]
+        max_size = max(max_size, p.size)
+    p_out = polynomial(size=max_size)
+    p_out.coef[0 : args[0].degree + 1] = args[0].coef[0 : args[0].degree + 1]
+    p_out.degree = args[0].degree
 
     for p in args[1:]:
         p_out = mul_2_polynomial(p_out, p)
@@ -87,50 +88,66 @@ def mul_polynomial(*args):
     return p_out
 
 
-"""
-def mul_inv_polynomial(p1):
-    assert isinstance(p1, polynomial)
-    p_out = polynomial(size=p1.size)
-    p_out.coef = np.divide(
-        np.ones(p1.coef.size, dtype=p1.coef.dtype),
-        p1.coef,
-        out=np.zeros_like(p1.coef),
-        where=p1.coef != 0.0,
-    )
-    p_out.coef = np.flip(p_out.coef)
-    p_out.coef = np_shift(p_out.coef, -1)
-    return p_out
-
-
-def div_polynomial(p1, p2):
-    assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
-    assert p1.size == p2.size
-
-    p_out = mul_polynomial(p1, mul_inv_polynomial(p2))
-    return p_out
-"""
+# calc multiplicative inverse of a number mod N based on solving Bézout's identity
+def mul_inv(a):
+    assert a < N
+    assert a >= 0
+    other_coef = np.array([0, 1])
+    cur_coef = np.array([1, 0])
+    other = N
+    cur = a
+    while cur != 0:
+        while other >= cur:
+            other -= cur
+            other_coef -= cur_coef
+        other, cur = cur, other
+        other_coef, cur_coef = cur_coef, other_coef
+    return other_coef[0] % N
 
 
 def mod_polynomial(p1, p2):
-    for p in range(p1.min_pow, -1):
-        assert p1.get_coef(p) == 0
-    for p in range(p2.min_pow, -1):
-        assert p2.get_coef(p) == 0
-    assert p1.max_nonzero_pow() >= p2.max_nonzero_pow()
+    assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
 
-    p1_max = p1.max_nonzero_pow()
-    p2_max = p2.max_nonzero_pow()
-    p_q = polynomial()
-    for p in range(p1_max, p2_max - 1, -1):
-        fac = p1.get_coef(p) / p2.get_coef(p2_max)
-        p_q.set_coef(p - p2_max, fac)
+    p_q = polynomial(size=max(p1.size, p2.size))
+    p_r = copy.copy(p1)
+    for p in range(p1.degree, p2.degree - 1, -1):
+        fac = (p_r.get_coef(p) * mul_inv(p2.get_coef(p2.degree))) % N
+        p_q.set_coef(p - p2.degree, fac)
         if fac == 0:
             continue
         p_fac = polynomial(size=p2.size)
-        p_fac.set_coef(p - p2_max, fac)
-        p1 = sub_polynomial(p1, mul_polynomial(p2, p_fac))
+        p_fac.set_coef(p - p2.degree, fac)
+        p_r = sub_polynomial(p_r, mul_polynomial(p2, p_fac))
 
-    return p_q, p1
+    return p_q, p_r
+
+
+# exponent by repeated squaring
+def exp_polynomial(p, e):
+    assert isinstance(p, polynomial) and float(e).is_integer()
+
+    p_out = p.copy_meta()
+    p_out.set_coef(0, 1)
+    if e == 0:
+        return p_out
+    else:
+        for a in bin(e).replace("0b", ""):
+            p_out = mul_polynomial(p_out, p_out)
+            if a == "1":
+                p_out = mul_polynomial(p_out, p)
+    return p_out
+
+
+def gcd_polynomial(p1, p2):
+    assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
+    if p2.degree > p1.degree:
+        p1, p2 = p2, p1
+    p_zero = p2.copy_meta()
+    while not np.all(np.equal(p2.coef, p_zero.coef)):
+        p_t = mod_polynomial(p1, p2)[1]
+        p1 = p2
+        p2 = p_t
+    return p1
 
 
 class polynomial:
@@ -138,40 +155,36 @@ class polynomial:
     def __init__(self, size=64):
         self.coef = np.zeros(size)
         self.size = size
-        self.min_pow = int(-size / 2)
-        self.max_pow = int(size / 2 - 1)
+        self.degree = 0
+
+    def copy_meta(self):
+        p = polynomial(size=self.size)
+        p.size = self.size
+        p.degree = self.degree
+        return p
+
+    def update_degree(self, power=None):
+        if power == None:
+            self.degree = self.max_nonzero_pow()
+        else:
+            assert float(power).is_integer()
+            if self.degree < power:
+                self.degree = power
 
     def set_coef(self, power, coef):
-        assert abs(power < self.size / 2)
-        """
-      indexing of coef: [-(size/2)+1, -(size/2)+2, ..., (size/2)-1]
-      index: exponent
-      value at index: coefficient
-      """
-        self.coef[int(power + self.size / 2)] = coef
-
-    def get_coef_index(self, index):
-        return self.coef[index]
+        assert power >= 0 and power < self.size
+        self.coef[power] = coef % N
+        self.update_degree(power=power)
 
     def get_coef(self, power):
-        return self.coef[self.get_index(power)]
-
-    def get_pow(self, index):
-        return int(
-            index - self.size / 2
-            if index >= (self.size / 2)
-            else index - self.size / 2
-        )
-
-    def get_index(self, power):
-        if power >= 0:
-            assert power <= (self.size / 2) - 1
-        else:
-            assert power >= -(self.size / 2)
-        return int(self.size / 2) + power
+        assert power >= 0 and power < self.size
+        return self.coef[power]
 
     def max_nonzero_pow(self):
-        return self.get_pow(np.max(np.nonzero(self.coef)))
+        try:
+            return np.max(np.nonzero(self.coef))
+        except ValueError:
+            return 0
 
     def __str__(self):
         nzero = np.nonzero(self.coef)
@@ -181,37 +194,35 @@ class polynomial:
             r = ""
             it = np.nditer(nzero)
             nxt = next(it)
-            r += (
-                str(self.get_coef_index(nxt))
-                + "x^"
-                + str(self.get_pow(nxt))
-                + " "
-            )
+            r += str(self.get_coef(nxt)) + "x^" + str(nxt) + " "
 
             while True:
                 try:
                     nxt = next(it)
-                    r += (
-                        "+ "
-                        + str(self.get_coef_index(nxt))
-                        + "x^"
-                        + str(self.get_pow(nxt))
-                        + " "
-                    )
+                    r += "+ " + str(self.get_coef(nxt)) + "x^" + str(nxt) + " "
                 except StopIteration:
                     break
-
         return r
 
 
-import time
-
-p1 = polynomial()
-for i in range(-32, 32):
-    p1.set_coef(i, i)
-t0 = time.time()
-ans = mul_polynomial(p1, p1)
-t1 = time.time()
-
-print("p1*p1: ", ans)
-print(t1 - t0)
+if __name__ == "__main__":
+    p1 = polynomial()
+    p1.set_coef(0, 3)
+    p1.set_coef(2, 7)
+    p2 = add_inv_polynomial(p1)
+    p2 = mul_polynomial(p2, p1)
+    p2.set_coef(3, 1)
+    p3 = polynomial()
+    p3.set_coef(0, 2)
+    p3.set_coef(1, 3)
+    p3.set_coef(2, 1)
+    p4 = polynomial()
+    p4.set_coef(0, 1)
+    p4.set_coef(1, 3)
+    p4.set_coef(2, 3)
+    p4.set_coef(3, 1)
+    print("p3:", p3)
+    print("p4:", p4)
+    print("gcd: ", gcd_polynomial(p3, p4))
+    # print("p2-p1", *mod_polynomial(p2, p1))
+    # print(gcd_polynomial(p2,p1))
