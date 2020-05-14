@@ -20,7 +20,6 @@ CLASS IMPLEMENTED: POLYNOMIAL
     - add_polynomial() -        accepts any number of polynomial objects as input
     - mul_polynomial() -        accepts any number of polynomial objects as input
     - sub_polynomial(p1,p2) -   (p1 - p2)
-    - div_polynomial(p1,p2) -   (p1 / p2)
     - mod_polynomial(p1,p2) -   (p1 % p2); returns (p_quotient , p_remainder) 
 
 
@@ -60,20 +59,6 @@ def sub_polynomial(p1, p2):
     return add_polynomial(p1, add_inv_polynomial(p2))
 
 
-def mul_inv_polynomial(p1):
-    assert isinstance(p1, polynomial)
-    p_out = polynomial(size=p1.size)
-    p_out.coef = np.divide(
-        np.ones(p1.coef.size, dtype=p1.coef.dtype),
-        p1.coef,
-        out=np.zeros_like(p1.coef),
-        where=p1.coef != 0.0,
-    )
-    p_out.coef = np.flip(p_out.coef)
-    p_out.coef = np_shift(p_out.coef, -1)
-    return p_out
-
-
 def mul_2_polynomial(p1, p2):
     assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
     assert p1.size == p2.size
@@ -102,12 +87,28 @@ def mul_polynomial(*args):
     return p_out
 
 
+"""
+def mul_inv_polynomial(p1):
+    assert isinstance(p1, polynomial)
+    p_out = polynomial(size=p1.size)
+    p_out.coef = np.divide(
+        np.ones(p1.coef.size, dtype=p1.coef.dtype),
+        p1.coef,
+        out=np.zeros_like(p1.coef),
+        where=p1.coef != 0.0,
+    )
+    p_out.coef = np.flip(p_out.coef)
+    p_out.coef = np_shift(p_out.coef, -1)
+    return p_out
+
+
 def div_polynomial(p1, p2):
     assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
     assert p1.size == p2.size
 
     p_out = mul_polynomial(p1, mul_inv_polynomial(p2))
     return p_out
+"""
 
 
 def mod_polynomial(p1, p2):
@@ -203,16 +204,14 @@ class polynomial:
         return r
 
 
+import time
+
 p1 = polynomial()
-p1.set_coef(0, 8)
-p1.set_coef(1, 8)
-p1.set_coef(2, 8)
-p1.set_coef(3, 8)
-print("p1: ", p1)
-p2 = polynomial()
-p2.set_coef(1, 1)
-p2.set_coef(0, 2)
-# p2.set_coef(2, 3)
-print("p2: ", p2)
-p_q, p_r = mod_polynomial(p1, p2)
-print("p1 mod p2: ", p_q, "      ", p_r)
+for i in range(-32, 32):
+    p1.set_coef(i, i)
+t0 = time.time()
+ans = mul_polynomial(p1, p1)
+t1 = time.time()
+
+print("p1*p1: ", ans)
+print(t1 - t0)
