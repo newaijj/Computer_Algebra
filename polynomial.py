@@ -139,9 +139,14 @@ def exp_polynomial(p, e):
                 p_out = mul_polynomial(p_out, p)
     return p_out
 
+
 # exponent by repeated squaring, modded some polynomial f
 def exp_polynomial_rem(p, e, f):
-    assert isinstance(p, polynomial) and isinstance(f, polynomial) and float(e).is_integer()
+    assert (
+        isinstance(p, polynomial)
+        and isinstance(f, polynomial)
+        and float(e).is_integer()
+    )
 
     p_out = p.copy_meta()
     p_out.set_coef(0, 1)
@@ -149,9 +154,9 @@ def exp_polynomial_rem(p, e, f):
         return p_out
     else:
         for a in bin(e).replace("0b", ""):
-            p_out = mod_polynomial(mul_polynomial(p_out, p_out),f)[1]
+            p_out = mod_polynomial(mul_polynomial(p_out, p_out), f)[1]
             if a == "1":
-                p_out = mod_polynomial(mul_polynomial(p_out, p),f)[1]
+                p_out = mod_polynomial(mul_polynomial(p_out, p), f)[1]
     return p_out
 
 
@@ -166,9 +171,11 @@ def gcd_polynomial(p1, p2):
         p2 = p_t
     return p1
 
-def equal_polynomial(p1,p2):
-    assert isinstance(p1,polynomial) and isinstance(p2,polynomial)
+
+def equal_polynomial(p1, p2):
+    assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
     return np.all(np.equal(p1.coef, p2.coef))
+
 
 class polynomial:
     # polynomial up to 64 terms
@@ -188,7 +195,7 @@ class polynomial:
             self.degree = self.max_nonzero_pow()
         else:
             assert float(power).is_integer()
-            if self.coef[power]!=0 and self.degree < power:
+            if self.coef[power] != 0 and self.degree < power:
                 self.degree = power
 
     def set_coef(self, power, coef):
@@ -245,16 +252,15 @@ if __name__ == "__main__":
     print("p4:", p4)
     print("gcd: ", gcd_polynomial(p3, p4))
 
-
     p5 = polynomial()
-    p5.set_coef(0,18)
-    p5.set_coef(1,2)
+    p5.set_coef(0, 18)
+    p5.set_coef(1, 2)
     p6 = polynomial()
-    p6.set_coef(0,14)
+    p6.set_coef(0, 14)
 
-    print(equal_polynomial(p5,p5))
-    print(equal_polynomial(p6,p6))
-    print(6*mul_inv(9)%N)
-    #18.0x^0 + 2.0x^1  14.0x^0 
+    print(equal_polynomial(p5, p5))
+    print(equal_polynomial(p6, p6))
+    print(6 * mul_inv(9) % N)
+    # 18.0x^0 + 2.0x^1  14.0x^0
     # print("p2-p1", *mod_polynomial(p2, p1))
     # print(gcd_polynomial(p2,p1))
