@@ -21,12 +21,12 @@ CLASS IMPLEMENTED: POLYNOMIAL
 - FUNCTIONS - POLYNOMIAL
     - add_polynomial() -                    accepts any number of polynomial objects as input
     - mul_polynomial() -                    accepts any number of polynomial objects as input
-    - sub_polynomial(p1,p2) -               (p1 - p2)
-    - mod_polynomial(p1,p2) -               (p1 % p2); returns (p_quotient , p_remainder) given global N
-    - exp_polynomial(p,e)   -               returns (p^e), e must be integer
-    - exp_polynomial_rem(p, e, f) -         returns (p^e mod f), e must be integer, p and f must be polynomials
-    - gcd_polynomial(p1,p2) -               return GCD of the two polynomials given global N
-    - equal_polynomial(p1,p2) -             returns if polynomials are equal
+    - sub_polynomial(p1,p2,N=N) -               (p1 - p2)
+    - mod_polynomial(p1,p2,N=N) -               (p1 % p2); returns (p_quotient , p_remainder) given global N
+    - exp_polynomial(p,e,N=N)   -               returns (p^e), e must be integer
+    - exp_polynomial_rem(p, e, f,N=N) -         returns (p^e mod f), e must be integer, p and f must be polynomials
+    - gcd_polynomial(p1,p2,N=N) -               return GCD of the two polynomials given global N
+    - equal_polynomial(p1,p2,N=N) -             returns if polynomials are equal
 
 - FUNCTION - MISC
     - mul_inv(a)    -   calculates multiplicative inverse given global N
@@ -35,12 +35,12 @@ CLASS IMPLEMENTED: POLYNOMIAL
 N = 23
 
 
-def add_polynomial(*args):
+def add_polynomial(*args, N=N):
     max_size = 0
     for p in args:
         assert isinstance(p, polynomial)
         max_size = max(max_size, p.size)
-    p_out = polynomial(size=max_size)
+    p_out = polynomial(size=max_size, N=N)
 
     for p in args:
         out = np.zeros(max_size)
@@ -59,15 +59,15 @@ def add_inv_polynomial(p1):
     return p_out
 
 
-def sub_polynomial(p1, p2):
-    return add_polynomial(p1, add_inv_polynomial(p2))
+def sub_polynomial(p1, p2, N=N):
+    return add_polynomial(p1, add_inv_polynomial(p2), N=N)
 
 
-def mul_2_polynomial(p1, p2):
+def mul_2_polynomial(p1, p2, N=N):
     assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
 
     np_out = np.convolve(p1.coef[0 : p1.degree + 1], p2.coef[0 : p2.degree + 1])
-    p_out = polynomial(size=max(p1.size, p2.size, np_out.shape[0]))
+    p_out = polynomial(size=max(p1.size, p2.size, np_out.shape[0]), N=N)
     p_out.degree = np_out.shape[0] - 1
     p_out.coef[0 : np_out.shape[0]] = np_out
     p_out.coef = p_out.coef % N
@@ -75,23 +75,23 @@ def mul_2_polynomial(p1, p2):
     return p_out
 
 
-def mul_polynomial(*args):
+def mul_polynomial(*args, N=N):
     max_size = 0
     for p in args:
         assert isinstance(p, polynomial)
         max_size = max(max_size, p.size)
-    p_out = polynomial(size=max_size)
+    p_out = polynomial(size=max_size, N=N)
     p_out.coef[0 : args[0].degree + 1] = args[0].coef[0 : args[0].degree + 1]
     p_out.degree = args[0].degree
 
     for p in args[1:]:
-        p_out = mul_2_polynomial(p_out, p)
+        p_out = mul_2_polynomial(p_out, p, N=N)
 
     return p_out
 
 
 # calc multiplicative inverse of a number mod N based on solving Bézout's identity
-def mul_inv(a):
+def mul_inv(a, N=N):
     assert a < N
     assert a >= 0
     other_coef = np.array([0, 1])
@@ -107,25 +107,25 @@ def mul_inv(a):
     return other_coef[0] % N
 
 
-def mod_polynomial(p1, p2):
+def mod_polynomial(p1, p2, N=N):
     assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
 
-    p_q = polynomial(size=max(p1.size, p2.size))
+    p_q = polynomial(size=max(p1.size, p2.size), N=N)
     p_r = copy.copy(p1)
     for p in range(p1.degree, p2.degree - 1, -1):
-        fac = (p_r.get_coef(p) * mul_inv(p2.get_coef(p2.degree))) % N
+        fac = (p_r.get_coef(p) * mul_inv(p2.get_coef(p2.degree), N=N)) % N
         p_q.set_coef(p - p2.degree, fac)
         if fac == 0:
             continue
-        p_fac = polynomial(size=p2.size)
+        p_fac = polynomial(size=p2.size, N=N)
         p_fac.set_coef(p - p2.degree, fac)
-        p_r = sub_polynomial(p_r, mul_polynomial(p2, p_fac))
+        p_r = sub_polynomial(p_r, mul_polynomial(p2, p_fac, N=N), N=N)
 
     return p_q, p_r
 
 
 # exponent by repeated squaring
-def exp_polynomial(p, e):
+def exp_polynomial(p, e, N=N):
     assert isinstance(p, polynomial) and float(e).is_integer()
 
     p_out = p.copy_meta()
@@ -134,14 +134,14 @@ def exp_polynomial(p, e):
         return p_out
     else:
         for a in bin(e).replace("0b", ""):
-            p_out = mul_polynomial(p_out, p_out)
+            p_out = mul_polynomial(p_out, p_out, N=N)
             if a == "1":
-                p_out = mul_polynomial(p_out, p)
+                p_out = mul_polynomial(p_out, p, N=N)
     return p_out
 
 
 # exponent by repeated squaring, modded some polynomial f
-def exp_polynomial_rem(p, e, f):
+def exp_polynomial_rem(p, e, f, N=N):
     assert (
         isinstance(p, polynomial)
         and isinstance(f, polynomial)
@@ -154,19 +154,19 @@ def exp_polynomial_rem(p, e, f):
         return p_out
     else:
         for a in bin(e).replace("0b", ""):
-            p_out = mod_polynomial(mul_polynomial(p_out, p_out), f)[1]
+            p_out = mod_polynomial(mul_polynomial(p_out, p_out, N=N), f, N=N)[1]
             if a == "1":
-                p_out = mod_polynomial(mul_polynomial(p_out, p), f)[1]
+                p_out = mod_polynomial(mul_polynomial(p_out, p, N=N), f, N=N)[1]
     return p_out
 
 
-def gcd_polynomial(p1, p2):
+def gcd_polynomial(p1, p2, N=N):
     assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
     if p2.degree > p1.degree:
         p1, p2 = p2, p1
     p_zero = p2.copy_meta()
     while not np.all(np.equal(p2.coef, p_zero.coef)):
-        p_t = mod_polynomial(p1, p2)[1]
+        p_t = mod_polynomial(p1, p2, N=N)[1]
         p1 = p2
         p2 = p_t
     return p1
@@ -177,18 +177,72 @@ def equal_polynomial(p1, p2):
     return np.all(np.equal(p1.coef, p2.coef))
 
 
+def lc(p):
+    assert isinstance(p, polynomial)
+    return p.get_coef(p.degree)
+
+
+def extended_euclidean(p1, p2, N=N):
+    assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
+    p = polynomial((0, lc(p1)), N=N), polynomial((0, lc(p2)), N=N)
+    s = polynomial((0, mul_inv(lc(p1), N=N)), N=N), polynomial(N=N)
+    t = polynomial(N=N), polynomial((0, mul_inv(lc(p2), N=N)), N=N)
+    r1 = mul_polynomial(p1, s[0], N=N)
+    r2 = mul_polynomial(p2, t[1], N=N)
+    r = r1, r2
+    q = (0, 0)
+
+    cur = 1
+    other = 0
+    p_zero = polynomial(N=N)
+    while equal_polynomial(r[cur], p_zero):
+        temp = cur
+        cur = other
+        other = cur
+        q[cur] = mod_polynomial(r[other], r[cur], N=N)[0]
+        rem = mod_polynomial(r[other], r[cur], N=N)[1]
+        p[other] = polynomial((0, lc(rem)), N=N)
+        r[other] = mul_polynomial(
+            polynomial((0, mul_inv(lc(rem), N=N)), N=N), rem
+        )
+        s[other] = mul_polynomial(
+            sub_polynomial(s[other], mul_polynomial(s[cur], q[cur], N=N), N=N),
+            p[other].get_coef(0),
+            N=N,
+        )
+        t[other] = mul_polynomial(
+            sub_polynomial(t[other], mul_polynomial(t[cur], q[cur], N=N), N=N),
+            p[other].get_coef(0),
+            N=N,
+        )
+
+    return p[other], s[other], t[other], r[other]
+
+
 class polynomial:
     # polynomial up to 64 terms
-    def __init__(self, size=64):
+    def __init__(self, initial=None, size=64, N=N):
         self.coef = np.zeros(size)
         self.size = size
         self.degree = 0
+        self.N = N
+        if initial != None:
+            assert isinstance(initial, tuple)
+            self.set_coef(initial[0], initial[1])
 
     def copy_meta(self):
         p = polynomial(size=self.size)
         p.size = self.size
         p.degree = self.degree
+        p.N = self.N
         return p
+
+    def update_N(N):
+        assert float(N).is_integer()
+        if N < self.N:
+            self.coef %= N
+        update_degree()
+        self.N = N
 
     def update_degree(self, power=None):
         if power == None:
@@ -200,7 +254,7 @@ class polynomial:
 
     def set_coef(self, power, coef):
         assert power >= 0 and power < self.size
-        self.coef[power] = coef % N
+        self.coef[power] = coef % self.N
         self.update_degree(power=power)
 
     def get_coef(self, power):
@@ -233,34 +287,23 @@ class polynomial:
 
 
 if __name__ == "__main__":
-    p1 = polynomial()
-    p1.set_coef(0, 3)
-    p1.set_coef(2, 7)
-    p2 = add_inv_polynomial(p1)
-    p2 = mul_polynomial(p2, p1)
-    p2.set_coef(3, 1)
     p3 = polynomial()
     p3.set_coef(0, 2)
     p3.set_coef(1, 3)
     p3.set_coef(2, 1)
     p4 = polynomial()
-    p4.set_coef(0, 1)
-    p4.set_coef(1, 3)
-    p4.set_coef(2, 3)
-    p4.set_coef(3, 1)
-    print("p3:", p3)
-    print("p4:", p4)
-    print("gcd: ", gcd_polynomial(p3, p4))
+    p4.set_coef(0, 2)
+    p4.set_coef(1, 6)
+    p4.set_coef(2, 6)
+    p4.set_coef(3, 2)
+    p, s, t, r = extended_euclidean(p3, p4)
+    jkj = p3, p4
+    for i in range(1):
+        print(p)
+        print(s)
+        print(t)
+        print(r)
 
-    p5 = polynomial()
-    p5.set_coef(0, 18)
-    p5.set_coef(1, 2)
-    p6 = polynomial()
-    p6.set_coef(0, 14)
-
-    print(equal_polynomial(p5, p5))
-    print(equal_polynomial(p6, p6))
-    print(6 * mul_inv(9) % N)
     # 18.0x^0 + 2.0x^1  14.0x^0
     # print("p2-p1", *mod_polynomial(p2, p1))
     # print(gcd_polynomial(p2,p1))
