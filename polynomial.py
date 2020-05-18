@@ -170,6 +170,7 @@ def gcd_polynomial(p1, p2, N=N):
     if p2.degree > p1.degree:
         p1, p2 = p2, p1
     p_zero = p2.copy_meta()
+
     while not np.all(np.equal(p2.coef, p_zero.coef)):
         p_t = mod_polynomial(p1, p2, N=N)[1]
         p1 = p2
@@ -177,9 +178,9 @@ def gcd_polynomial(p1, p2, N=N):
     return p1
 
 
-def equal_polynomial(p1, p2):
+def equal_polynomial(p1, p2, N=N):
     assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
-    return np.all(np.equal(p1.coef, p2.coef))
+    return np.all(np.equal(p1.coef % N, p2.coef % N))
 
 
 def lc(p):

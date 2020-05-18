@@ -25,12 +25,14 @@ def Hensel_step(f, g, h, s, t, N=N):
     assert isinstance(h, polynomial)
     assert isinstance(s, polynomial)
     assert isinstance(t, polynomial)
-    assert equal_polynomial(f, mul_polynomial(g, h, N=N))
+
+    assert equal_polynomial(f, mul_polynomial(g, h, N=N), N=N)
     assert equal_polynomial(
         polynomial((0, 1), N=N),
         add_polynomial(
             mul_polynomial(s, g, N=N), mul_polynomial(h, t, N=N), N=N
         ),
+        N=N,
     )
 
     N_ = N ** 2
@@ -60,8 +62,14 @@ def Hensel_step(f, g, h, s, t, N=N):
         N=N_,
     )
 
-    """ADDITIONAL PART TO ENSURE GCD IS 1
-    """
+    assert equal_polynomial(f, mul_polynomial(g_, h_, N=N_), N=N_)
+    assert equal_polynomial(
+        polynomial((0, 1), N=N_),
+        add_polynomial(
+            mul_polynomial(s_, g_, N=N_), mul_polynomial(h_, t_, N=N_), N=N_
+        ),
+        N=N_,
+    )
 
     return g_, h_, s_, t_
 
@@ -72,23 +80,44 @@ IMPLEMENTED FUNCTION: MULTIFACTOR_HENSEL_LIFTING
 	-INPUT:
 		- N 			- mod
 		- f 			- R[x] of degree n (to be factorised)
-		- a  			- multiplicative inverse of lc(f) (mod m)
-		- l 			- factor to Hensel Lift by (i.e. m**l)
-		- T 			- factor tree of normal(f) (mod m)
+		- a  			- multiplicative inverse of lc(f) (mod N)
+		- l 			- factor to Hensel Lift by (i.e. N**l)
+							-HAS TO BE A FACTOR OF 2 OTHERWISE IT BEHAVES WEIRDLY
+		- T 			- factor tree of normal(f) (mod N)
 
 	-OUTPUT:
-		- a 			- multiplicative inverse of lc(f) (mod m**l)
-		- T 			- factor tree of normal(f) (mod m**l)
+		- a 			- multiplicative inverse of lc(f) (mod N**l)
+		- T 			- factor tree of normal(f) (mod N**l)
 
 """
 
 
 def Multifactor_Hensel_Lifting(N, f, a, l, T):
-    return 0
+    d = int(np.ceil(np.log(l) / np.log(2)))
+
+    for j in range(1, d + 1, 1):
+        N_ = N ** (2 ** j)
+        a = (2 * a - lc(f) * a * a) % N_
+        T.value = mul_polynomial(polynomial((0, a), N=N_), f, N=N_)
+
+        for node in T.get_walk():
+            if not node.isleaf():
+                node.L.value, node.R.value, node.s, node.t = Hensel_step(
+                    node.value,
+                    node.L.value,
+                    node.R.value,
+                    node.s,
+                    node.t,
+                    N=N ** (2 ** (j - 1)),
+                )
+
+    return a, T
 
 
 if __name__ == "__main__":
+
     """
+    HENSEL STEP VERIFICATION
     p1 = polynomial()
     p1.set_coef(0, 1)
     p1.set_coef(1, 2)
@@ -118,4 +147,42 @@ if __name__ == "__main__":
             N=N ** 2,
         ),
     )
+    """
+    """
+    MULTIFACTOR HENSEL LIFTING VERIFICATION
+    p_prob = polynomial()
+    p_prob.set_coef(0, 21)
+    p_prob.set_coef(1, 20)
+    p_prob.set_coef(2, 21)
+    p_prob.set_coef(3, 9)
+    p_prob.set_coef(4, 15)
+    p_prob.set_coef(5, 19)
+    p_prob.set_coef(6, 8)
+    p_prob.set_coef(7, 9)
+    p_prob.set_coef(8, 19)
+    p_prob.set_coef(9, 4)
+    p_rand = rand_polynomial(10)
+    print("random_polynomial: ", p_prob)
+
+    a = mul_inv(lc(p_prob))
+    p_norm = mul_polynomial(p_prob,polynomial((0,a)))
+    print("normalised: ",p_norm)
+
+    print("factorisation: ")
+    facs = factorise_polynomial_int_finite(p_norm)
+    for f in facs:
+        print(f)
+    print("verify: ", mul_polynomial(*facs))
+
+
+    T = make_tree(facs)
+    a,t = Multifactor_Hensel_Lifting(N,p_prob,a,4,T)
+
+    print("a: ", a)
+    print("T.value: ",mul_polynomial(T.value,polynomial((0,mul_inv(a,N=N**4)),N=N**4)))
+
+    verification=mul_polynomial(T.L.value,T.R.value,N=N**4)
+    verification2 = mul_polynomial(T.L.L.value,T.L.R.value,T.R.L.value,T.R.R.value,N=N**4)
+    print("verify: ",verification)
+    print("verify2: ", verification2)
     """

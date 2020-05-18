@@ -103,8 +103,6 @@ def make_tree(factors, N=N):
             others.append((node_c, i))
         else:
             others.append((node_c, 1))
-        for f in others:
-            print(f[1])
 
     for i in range(len(others) - 1, 0, -1):
         node_new = factor_tree()
