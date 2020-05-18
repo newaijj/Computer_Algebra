@@ -9,24 +9,28 @@ CLASS IMPLEMENTED: POLYNOMIAL
     -coefficients mod N
 
 - ATTRIBUTES
-    - size  - total number of coefficients stored (defaults to 64)
-    - degree - degree of polynomial (maintained on insertions, but not for direct access to p.coef)
+    - size      - total number of coefficients stored (defaults to 64)
+    - degree    - degree of polynomial (maintained on insertions, but not for direct access to p.coef)
+    - N         - current N of this polynomial
 
 - METHODS
     - set_coef(power, coefficient)
     - get_coef(power)
     - update_degree(power=None) - checks if degree needs to be updated. If power is specified, checks if that power is larger than current degree and sets it if it is
-    - copy_meta()   - returns polynomial with copy of all meta variables but empty coefficients
+    - copy_meta()               - returns polynomial with copy of all meta variables but empty coefficients
+    - update_N(N)               - updates self.N if N is bigger than self.N
 
 - FUNCTIONS - POLYNOMIAL
-    - add_polynomial() -                    accepts any number of polynomial objects as input
-    - mul_polynomial() -                    accepts any number of polynomial objects as input
-    - sub_polynomial(p1,p2,N=N) -               (p1 - p2)
-    - mod_polynomial(p1,p2,N=N) -               (p1 % p2); returns (p_quotient , p_remainder) given global N
-    - exp_polynomial(p,e,N=N)   -               returns (p^e), e must be integer
-    - exp_polynomial_rem(p, e, f,N=N) -         returns (p^e mod f), e must be integer, p and f must be polynomials
-    - gcd_polynomial(p1,p2,N=N) -               return GCD of the two polynomials given global N
-    - equal_polynomial(p1,p2,N=N) -             returns if polynomials are equal
+    - add_polynomial()                      - accepts any number of polynomial objects as input
+    - mul_polynomial()                      - accepts any number of polynomial objects as input
+    - sub_polynomial(p1,p2,N=N)             - (p1 - p2)
+    - mod_polynomial(p1,p2,N=N)             - (p1 % p2); returns (p_quotient , p_remainder) given global N
+    - exp_polynomial(p,e,N=N)               - returns (p^e), e must be integer
+    - exp_polynomial_rem(p, e, f,N=N)       - returns (p^e mod f), e must be integer, p and f must be polynomials
+    - gcd_polynomial(p1, p2, N=N)           - return GCD of the two polynomials given global N
+    - equal_polynomial(p1, p2, N=N)         - returns if polynomials are equal
+    - lc(p)                                 - returns leading coefficient of polynomial
+    - extended_euclidean(p1, p2, N=N)       - return p,s,t,r (Algo 3.6), s*p1+t*p2=r=gcd(p1,p2)     
 
 - FUNCTION - MISC
     - mul_inv(a)    -   calculates multiplicative inverse given global N
