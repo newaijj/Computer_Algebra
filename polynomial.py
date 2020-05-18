@@ -5,8 +5,9 @@ import copy
 
 """
 CLASS IMPLEMENTED: POLYNOMIAL
-    -univariable only
-    -coefficients mod N
+    - univariable only
+    - coefficients mod N
+    - __init__(self, initial=None, size=64, N=N)
 
 - ATTRIBUTES
     - size      - total number of coefficients stored (defaults to 64)
@@ -56,15 +57,15 @@ def add_polynomial(*args, N=N):
     return p_out
 
 
-def add_inv_polynomial(p1):
+def add_inv_polynomial(p1, N=N):
     assert isinstance(p1, polynomial)
     p_out = copy.deepcopy(p1)
-    p_out.coef = -p_out.coef
+    p_out.coef = -p_out.coef % N
     return p_out
 
 
 def sub_polynomial(p1, p2, N=N):
-    return add_polynomial(p1, add_inv_polynomial(p2), N=N)
+    return add_polynomial(p1, add_inv_polynomial(p2, N=N), N=N)
 
 
 def mul_2_polynomial(p1, p2, N=N):
@@ -188,21 +189,22 @@ def lc(p):
 
 def extended_euclidean(p1, p2, N=N):
     assert isinstance(p1, polynomial) and isinstance(p2, polynomial)
-    p = polynomial((0, lc(p1)), N=N), polynomial((0, lc(p2)), N=N)
-    s = polynomial((0, mul_inv(lc(p1), N=N)), N=N), polynomial(N=N)
-    t = polynomial(N=N), polynomial((0, mul_inv(lc(p2), N=N)), N=N)
+    p = [polynomial((0, lc(p1)), N=N), polynomial((0, lc(p2)), N=N)]
+    s = [polynomial((0, mul_inv(lc(p1), N=N)), N=N), polynomial(N=N)]
+    t = [polynomial(N=N), polynomial((0, mul_inv(lc(p2), N=N)), N=N)]
     r1 = mul_polynomial(p1, s[0], N=N)
     r2 = mul_polynomial(p2, t[1], N=N)
-    r = r1, r2
-    q = (0, 0)
+    r = [r1, r2]
+    q = [0, 0]
 
     cur = 1
     other = 0
     p_zero = polynomial(N=N)
-    while equal_polynomial(r[cur], p_zero):
+    while not equal_polynomial(r[other], p_zero):
         temp = cur
         cur = other
-        other = cur
+        other = temp
+
         q[cur] = mod_polynomial(r[other], r[cur], N=N)[0]
         rem = mod_polynomial(r[other], r[cur], N=N)[1]
         p[other] = polynomial((0, lc(rem)), N=N)
@@ -211,16 +213,16 @@ def extended_euclidean(p1, p2, N=N):
         )
         s[other] = mul_polynomial(
             sub_polynomial(s[other], mul_polynomial(s[cur], q[cur], N=N), N=N),
-            p[other].get_coef(0),
+            polynomial((0, mul_inv(p[other].get_coef(0), N=N))),
             N=N,
         )
         t[other] = mul_polynomial(
             sub_polynomial(t[other], mul_polynomial(t[cur], q[cur], N=N), N=N),
-            p[other].get_coef(0),
+            polynomial((0, mul_inv(p[other].get_coef(0), N=N))),
             N=N,
         )
 
-    return p[other], s[other], t[other], r[other]
+    return p[cur], s[cur], t[cur], r[cur]
 
 
 class polynomial:
@@ -307,6 +309,24 @@ if __name__ == "__main__":
         print(s)
         print(t)
         print(r)
+
+    print("\n\n")
+
+    p1 = polynomial()
+    p1.set_coef(0, 3)
+    p1.set_coef(1, 4)
+    p1.set_coef(2, 7)
+    p1 = mul_polynomial(p1, polynomial((0, mul_inv(5))))
+    print(p1)
+    p2 = polynomial()
+    p2.set_coef(0, 4)
+    p2.set_coef(1, 3)
+    print(p2)
+    print(*extended_euclidean(p1, p2))
+    _, s, t, _ = extended_euclidean(p1, p2)
+    print(add_polynomial(mul_polynomial(p1, s), mul_polynomial(p2, t)))
+
+    print(polynomial((0, -1)))
 
     # 18.0x^0 + 2.0x^1  14.0x^0
     # print("p2-p1", *mod_polynomial(p2, p1))
