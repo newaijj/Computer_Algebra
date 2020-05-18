@@ -1,5 +1,6 @@
 from polynomial import *
 from polynomial_fact import *
+from factor_tree import *
 
 """
 FUNCTIONS IMPLEMENTED: HENSEL_STEP
@@ -10,8 +11,8 @@ FUNCTIONS IMPLEMENTED: HENSEL_STEP
 	- INPUT: 
 		- f,g,h,s,t (all elements of R[x])
 
-	- f_ = g_*h_ mod m^2
-	- s_*g_ + t_*h_ = 1 mod m^2
+			- f_ = g_*h_ mod m^2
+			- s_*g_ + t_*h_ = 1 mod m^2
 
 	- OUTPUT:
 		- g_,h_,s_,t_ (all elements of R[x])
@@ -42,13 +43,6 @@ def Hensel_step(f, g, h, s, t, N=N):
     )
     h_ = add_polynomial(h, r, N=N_)
 
-    """ADDITIONAL PART TO ENSURE GCD IS 1
-    
-    gcd = gcd_polynomial(g_,h_,N=N_).get_coef(0)
-    g_ = mul_polynomial(g_,polynomial((0,gcd),N=N_),N=N_)
-    h_ = mul_polynomial(h_,polynomial((0,mul_inv(gcd,N=N_)),N=N_),N=N_)
-    """
-
     b = add_polynomial(
         mul_polynomial(s, g_, N=N_),
         mul_polynomial(t, h_, N=N_),
@@ -72,7 +66,29 @@ def Hensel_step(f, g, h, s, t, N=N):
     return g_, h_, s_, t_
 
 
+"""
+IMPLEMENTED FUNCTION: MULTIFACTOR_HENSEL_LIFTING
+
+	-INPUT:
+		- N 			- mod
+		- f 			- R[x] of degree n (to be factorised)
+		- a  			- multiplicative inverse of lc(f) (mod m)
+		- l 			- factor to Hensel Lift by (i.e. m**l)
+		- T 			- factor tree of normal(f) (mod m)
+
+	-OUTPUT:
+		- a 			- multiplicative inverse of lc(f) (mod m**l)
+		- T 			- factor tree of normal(f) (mod m**l)
+
+"""
+
+
+def Multifactor_Hensel_Lifting(N, f, a, l, T):
+    return 0
+
+
 if __name__ == "__main__":
+    """
     p1 = polynomial()
     p1.set_coef(0, 1)
     p1.set_coef(1, 2)
@@ -102,3 +118,4 @@ if __name__ == "__main__":
             N=N ** 2,
         ),
     )
+    """
