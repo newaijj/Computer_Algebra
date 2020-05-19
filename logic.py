@@ -20,12 +20,24 @@ class logic:
     def __str__(self):
         return str(self.bool)
     
-P = logic(True)
-Q = logic(True)
-R = logic(False)
-S = logic(False)
+def logicOutput(P,Q,R):
+    return (P>=(~Q|R))^(R|Q)
 
-print("P^Q", P^Q)
-print("P^R", P^R)
-print("~P=>R", ~P>=R)
-print("R=>P", R>=P)
+num = 3 #number of variables
+varspace = 3
+outspace = 8
+print("P".rjust(varspace," "), "Q".rjust(varspace," "), "R".rjust(varspace," "), "output".rjust(outspace," "),end ="\n\n")
+for i in range(1<<num):#2^number of variables
+    varVal = []
+    for x in range(num):
+        result = logic()
+        result.bool = bool(i&(1<<x))
+        varVal.append(result)
+    
+    [print("T".rjust(varspace," "), end = " ") if x.bool \
+     else print("F".rjust(varspace," "),end=" ") for x in varVal]
+    if logicOutput(*varVal).bool:
+        out = "T"
+    else: out = "F"
+    print(out.rjust(outspace," "))
+    
