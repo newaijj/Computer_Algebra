@@ -9,7 +9,7 @@ class logic:
         result = logic()
         result.bool = self.bool or other.bool
         return result
-    def __invert(self, other):
+    def __invert__(self):
         result = logic()
         result.bool = not self.bool
         return result
@@ -27,5 +27,5 @@ S = logic(False)
 
 print("P^Q", P^Q)
 print("P^R", P^R)
-print("P=>R", P>=R)
+print("~P=>R", ~P>=R)
 print("R=>P", R>=P)
