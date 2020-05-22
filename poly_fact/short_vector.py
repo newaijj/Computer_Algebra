@@ -2,7 +2,8 @@ import numpy as np
 import copy
 
 """
-FUNCTIONS IMPLEMENTED: BASIS_REDUCTION
+FUNCTIONS IMPLEMENTED: BASIS_REDUCTION 
+(16.10)
 
 	- INPUT: 
 		- b 		- a basis, with integer coefficients
@@ -42,7 +43,7 @@ HELPER CLASS: VECTOR
 
 HELPER FUNCTIONS: 
 	- inner(v1,v2) 		- computes inner product of 2 vectors
-	
+
 """
 
 class basis:
