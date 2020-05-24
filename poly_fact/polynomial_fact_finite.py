@@ -137,9 +137,6 @@ def factorise_polynomial_int_finite(p, N=N):
         x.set_coef(1, 1)
         g = gcd_polynomial(sub_polynomial(h, x, N=N), v, N=N)
 
-        print("g: ", g)
-        print("i: ", i)
-
         if not equal_polynomial(
             g, polynomial((0, 1), N=N), N=N
         ):  # g.degree > 0:
@@ -163,7 +160,6 @@ def factorise_polynomial_int_finite(p, N=N):
 
 if __name__ == "__main__":
 
-    """
     p0 = polynomial()
     p3 = polynomial()
     p3.set_coef(0, 2)
@@ -190,11 +186,13 @@ if __name__ == "__main__":
     for f in facs:
         print(f)
     print("verify: ", mul_polynomial(*facs))
-    """
+
     # 2.0x^0 + 1.0x^2  3
+    """
     p = polynomial()
     p.set_coef(0, 2)
     p.set_coef(2, 1)
     fac = factorise_polynomial_int_finite(p, N=3)
     for f in fac:
         print(f)
+    """

@@ -74,8 +74,6 @@ def poly_fact_z(f):
         b_inv_poly = polynomial((0, mul_inv(b, N=p)), N=p)
         f_lc = mul_polynomial(f, b_inv_poly, N=p)
 
-        print("here")
-        print(f_lc, p)
         h_list = factorise_polynomial_int_finite(f_lc, N=p)
         cond = True
         for h in h_list:
@@ -93,9 +91,7 @@ def poly_fact_z(f):
         logger.debug(h)
 
     # 4
-    f_tree = make_tree(h_list)
-    print("s:", f_tree.s)
-    print("t:", f_tree.t)
+    f_tree = make_tree(h_list, N=p)
     b, f_tree = Multifactor_Hensel_Lifting(p, f, mul_inv(b, N=p), l, f_tree)
 
     return f

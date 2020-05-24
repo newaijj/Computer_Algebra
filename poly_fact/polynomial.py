@@ -110,9 +110,14 @@ def mul_inv(a, N=N):
     other = N
     cur = a
     while cur != 0:
+        times = int(other / cur)
+        other -= times * cur
+        other_coef -= times * cur_coef
+        """
         while other >= cur:
-            other -= cur
+            other  cur
             other_coef -= cur_coef
+        """
         other, cur = cur, other
         other_coef, cur_coef = cur_coef, other_coef
     return other_coef[0] % N

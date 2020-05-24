@@ -95,7 +95,7 @@ def make_tree(factors, N=N):
             i = 0
             while len(others) > 0 and others[-1][1] == i + 1:
                 node_new = factor_tree()
-                node_new.set_value(others[-1][0], node_c)
+                node_new.set_value(others[-1][0], node_c, N=N)
                 others = others[:-1]
                 node_c = node_new
                 i += 1

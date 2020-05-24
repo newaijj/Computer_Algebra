@@ -27,14 +27,6 @@ def Hensel_step(f, g, h, s, t, N=N):
     assert isinstance(t, polynomial)
 
     assert equal_polynomial(f, mul_polynomial(g, h, N=N), N=N)
-
-    print(
-        add_polynomial(
-            mul_polynomial(s, g, N=N), mul_polynomial(h, t, N=N), N=N
-        )
-    )
-    print(N)
-
     assert equal_polynomial(
         polynomial((0, 1), N=N),
         add_polynomial(
