@@ -62,7 +62,10 @@ def add_polynomial(*args, N=N):
 def add_inv_polynomial(p1, N=N):
     assert isinstance(p1, polynomial)
     p_out = copy.deepcopy(p1)
-    p_out.coef = -p_out.coef % N
+    if N != None:
+        p_out.coef = -p_out.coef % N
+    else:
+        p_out.coef = -p_out.coef
     return p_out
 
 
@@ -77,7 +80,8 @@ def mul_2_polynomial(p1, p2, N=N):
     p_out = polynomial(size=max(p1.size, p2.size, np_out.shape[0]), N=N)
     p_out.degree = np_out.shape[0] - 1
     p_out.coef[0 : np_out.shape[0]] = np_out
-    p_out.coef = p_out.coef % N
+    if N != None:
+        p_out.coef = p_out.coef % N
 
     return p_out
 
@@ -164,6 +168,7 @@ def exp_polynomial_rem(p, e, f, N=N):
             p_out = mod_polynomial(mul_polynomial(p_out, p_out, N=N), f, N=N)[1]
             if a == "1":
                 p_out = mod_polynomial(mul_polynomial(p_out, p, N=N), f, N=N)[1]
+    p_out.update_degree()
     return p_out
 
 
@@ -247,8 +252,8 @@ class polynomial:
         return p
 
     def update_N(N):
-        assert float(N).is_integer()
-        if N < self.N:
+        assert float(N).is_integer() or N == None
+        if N < self.N and N != None:
             self.coef %= N
         update_degree()
         self.N = N
@@ -263,7 +268,7 @@ class polynomial:
 
     def set_coef(self, power, coef):
         assert power >= 0 and power < self.size
-        self.coef[power] = coef % self.N
+        self.coef[power] = coef % self.N if N != None else coef
         self.update_degree(power=power)
 
     def get_coef(self, power):

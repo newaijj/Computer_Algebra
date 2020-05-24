@@ -33,7 +33,7 @@ def Hensel_step(f, g, h, s, t, N=N):
             mul_polynomial(s, g, N=N), mul_polynomial(h, t, N=N), N=N
         )
     )
-    print()
+    print(N)
 
     assert equal_polynomial(
         polynomial((0, 1), N=N),

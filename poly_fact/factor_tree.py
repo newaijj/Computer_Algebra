@@ -114,7 +114,7 @@ def make_tree(factors, N=N):
 
 
 if __name__ == "__main__":
-    from polynomial_fact import *
+    from polynomial_fact_finite import *
 
     p_prob = polynomial()
     p_prob.set_coef(0, 21)

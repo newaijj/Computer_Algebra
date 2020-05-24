@@ -55,20 +55,23 @@ def equal_degree_splitting(p, d, N=N):
     g1 = gcd_polynomial(a, p, N=N)
     if not equal_polynomial(polynomial((0, 1), N=N), g1, N=N) and g1.degree > 0:
 
-        g1 = mod_polynomial(g1, polynomial((0, g1.lc()), N=N), N=N)[0]
+        g1 = mul_polynomial(
+            g1, polynomial((0, mul_inv(g1.lc(), N=N)), N=N), N=N
+        )
         return g1
 
     b = exp_polynomial_rem(a, int((N ** d - 1) / 2), p, N=N)
     b.set_coef(0, b.get_coef(0) - 1)
 
-    g2 = extended_euclidean(b, p, N=N)[3]  # gcd_polynomial(b, p, N=N)
+    g2 = extended_euclidean(b, p, N=N)[3]
     if (
         not equal_polynomial(polynomial((0, 1), N=N), g1, N=N)
         and equal_polynomial(p, g2, N=N)
         and g2.degree > 0
-    ):  # g2.degree > 0 #and not np.all(np.equal(p.coef, g2.coef)):
-
-        g2 = mod_polynomial(g2, polynomial((0, g2.lc()), N=N), N=N)[0]
+    ):
+        g2 = mul_polynomial(
+            g2, polynomial((0, mul_inv(g2.lc(), N=N)), N=N), N=N
+        )
         return g2
     else:
         raise UnluckyStartError
@@ -133,6 +136,9 @@ def factorise_polynomial_int_finite(p, N=N):
         x = polynomial(N=N)
         x.set_coef(1, 1)
         g = gcd_polynomial(sub_polynomial(h, x, N=N), v, N=N)
+
+        print("g: ", g)
+        print("i: ", i)
 
         if not equal_polynomial(
             g, polynomial((0, 1), N=N), N=N
