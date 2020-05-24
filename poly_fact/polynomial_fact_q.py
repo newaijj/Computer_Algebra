@@ -94,6 +94,21 @@ def poly_fact_z(f):
     f_tree = make_tree(h_list, N=p)
     b, f_tree = Multifactor_Hensel_Lifting(p, f, mul_inv(b, N=p), l, f_tree)
 
+    # 5
+    T = set(h_list)
+    G = {}
+    f_ = copy.deepcopy(f)
+
+    # 6
+    while len(T) > 0:
+
+        # 7
+        u = max(T, key=lambda p: p.degree)
+        d = u.degree
+        n_ = f_.degree
+        print(u)
+        break
+
     return f
 
 
