@@ -1,5 +1,6 @@
 from polynomial import *
 from random import randint
+import copy
 
 """
 FUNCTIONS IMPLEMENTED: FACTORISE_POLYNOMIAL_INT_FINITE
@@ -52,29 +53,38 @@ def equal_degree_splitting(p, d, N=N):
         raise UnluckyStartError
 
     g1 = gcd_polynomial(a, p, N=N)
-    p_one = polynomial(size=g1.size, N=N)
-    p_one.set_coef(0, 1)
-    if g1.degree > 0:
+    if not equal_polynomial(polynomial((0, 1), N=N), g1, N=N) and g1.degree > 0:
+
+        g1 = mod_polynomial(g1, polynomial((0, g1.lc()), N=N), N=N)[0]
         return g1
 
     b = exp_polynomial_rem(a, int((N ** d - 1) / 2), p, N=N)
     b.set_coef(0, b.get_coef(0) - 1)
 
-    g2 = gcd_polynomial(b, p, N=N)
-    p_one = polynomial(size=g2.size, N=N)
-    p_one.set_coef(0, 1)
-    if g2.degree > 0 and not np.all(np.equal(p.coef, g2.coef)):
+    g2 = extended_euclidean(b, p, N=N)[3]  # gcd_polynomial(b, p, N=N)
+    if (
+        not equal_polynomial(polynomial((0, 1), N=N), g1, N=N)
+        and equal_polynomial(p, g2, N=N)
+        and g2.degree > 0
+    ):  # g2.degree > 0 #and not np.all(np.equal(p.coef, g2.coef)):
+
+        g2 = mod_polynomial(g2, polynomial((0, g2.lc()), N=N), N=N)[0]
         return g2
     else:
         raise UnluckyStartError
 
 
 def equal_degree_factorisation(p, d, N=N):
+
     if p.degree == d:
+        p = mod_polynomial(p, polynomial((0, p.lc()), N=N), N=N)[0]
         return [p]
+    if p.degree == 0:
+        return []
     while True:
         try:
-            fac = equal_degree_splitting(p, 1, N=N)
+            fac = equal_degree_splitting(p, d, N=N)
+            assert fac.degree > 0
         except UnluckyStartError:
             continue
         break
@@ -95,18 +105,24 @@ def factorise_polynomial_int_finite(p, N=N):
     h = polynomial(N=N)
     h.set_coef(1, 1)
 
-    v = p
+    v = copy.deepcopy(p)
 
     i = 0
 
     # set of factors found
-    U = []
+    if v.lc() == 1:
+        U = []
+    else:
+        U = [polynomial((0, v.lc()), N=N)]
+
+    v = mod_polynomial(v, polynomial((0, v.lc()), N=N), N=N)[0]
 
     v_one = polynomial(N=N)
     v_one.set_coef(0, 1)
     v_zero = polynomial(N=N)
 
-    while v.degree > 0:
+    while not equal_polynomial(v, polynomial((0, 1), N=N), N=N):
+
         i += 1
 
         """
@@ -118,7 +134,9 @@ def factorise_polynomial_int_finite(p, N=N):
         x.set_coef(1, 1)
         g = gcd_polynomial(sub_polynomial(h, x, N=N), v, N=N)
 
-        if g.degree > 0:
+        if not equal_polynomial(
+            g, polynomial((0, 1), N=N), N=N
+        ):  # g.degree > 0:
             """
 			call equal degree factorisation algorithm to separate factors fo degree i
 			"""
@@ -128,7 +146,9 @@ def factorise_polynomial_int_finite(p, N=N):
 			determine multiplicites of factors found
 			"""
             for fac in facs:
-                while equal_polynomial(mod_polynomial(v, fac, N=N)[1], v_zero):
+                while equal_polynomial(
+                    mod_polynomial(v, fac, N=N)[1], v_zero, N=N
+                ):
                     U.append(fac)
                     v = mod_polynomial(v, fac, N=N)[0]
 
@@ -137,6 +157,7 @@ def factorise_polynomial_int_finite(p, N=N):
 
 if __name__ == "__main__":
 
+    """
     p0 = polynomial()
     p3 = polynomial()
     p3.set_coef(0, 2)
@@ -163,3 +184,11 @@ if __name__ == "__main__":
     for f in facs:
         print(f)
     print("verify: ", mul_polynomial(*facs))
+    """
+    # 2.0x^0 + 1.0x^2  3
+    p = polynomial()
+    p.set_coef(0, 2)
+    p.set_coef(2, 1)
+    fac = factorise_polynomial_int_finite(p, N=3)
+    for f in fac:
+        print(f)

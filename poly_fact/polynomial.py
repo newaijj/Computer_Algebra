@@ -20,6 +20,8 @@ CLASS IMPLEMENTED: POLYNOMIAL
     - update_degree(power=None) - checks if degree needs to be updated. If power is specified, checks if that power is larger than current degree and sets it if it is
     - copy_meta()               - returns polynomial with copy of all meta variables but empty coefficients
     - update_N(N)               - updates self.N if N is bigger than self.N
+    - max_norm                  - return max_norm (max coefficient)
+    - lc                        - wrapper for lc function
 
 - FUNCTIONS - POLYNOMIAL
     - add_polynomial()                      - accepts any number of polynomial objects as input
@@ -97,7 +99,7 @@ def mul_polynomial(*args, N=N):
 
 # calc multiplicative inverse of a number mod N based on solving Bézout's identity
 def mul_inv(a, N=N):
-    assert a < N
+    a = a % N
     assert a >= 0
     other_coef = np.array([0, 1])
     cur_coef = np.array([1, 0])
@@ -274,6 +276,12 @@ class polynomial:
         except ValueError:
             return 0
 
+    def max_norm(self):
+        return np.max(self.coef)
+
+    def lc(self):
+        return lc(self)
+
     def __str__(self):
         nzero = np.nonzero(self.coef)
         if nzero[0].size == 0:
@@ -294,6 +302,7 @@ class polynomial:
 
 
 if __name__ == "__main__":
+    """
     p3 = polynomial()
     p3.set_coef(0, 2)
     p3.set_coef(1, 3)
@@ -311,8 +320,6 @@ if __name__ == "__main__":
         print(t)
         print(r)
 
-    print("\n\n")
-
     p1 = polynomial()
     p1.set_coef(0, 3)
     p1.set_coef(1, 4)
@@ -328,6 +335,7 @@ if __name__ == "__main__":
     print(add_polynomial(mul_polynomial(p1, s), mul_polynomial(p2, t)))
 
     print(polynomial((0, -1)))
+    """
 
     # 18.0x^0 + 2.0x^1  14.0x^0
     # print("p2-p1", *mod_polynomial(p2, p1))
