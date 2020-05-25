@@ -20,6 +20,7 @@ FUNCTIONS IMPLEMENTED: HENSEL_STEP
 
 
 def Hensel_step(f, g, h, s, t, N=N):
+
     assert isinstance(f, polynomial)
     assert isinstance(g, polynomial)
     assert isinstance(h, polynomial)
@@ -27,6 +28,17 @@ def Hensel_step(f, g, h, s, t, N=N):
     assert isinstance(t, polynomial)
 
     assert equal_polynomial(f, mul_polynomial(g, h, N=N), N=N)
+    """
+    print("s: ",s)
+    print("g: ",g)
+    print("mul_polynomial(s, g, N=N)",mul_polynomial(s, g, N=N))
+    print("t: ",t)
+    print("h: ",h)
+    print("mul_polynomial(h, t, N=N)", mul_polynomial(h, t, N=N))
+    print(add_polynomial(
+            mul_polynomial(s, g, N=N), mul_polynomial(h, t, N=N), N=N
+        ))
+    """
     assert equal_polynomial(
         polynomial((0, 1), N=N),
         add_polynomial(
@@ -51,9 +63,14 @@ def Hensel_step(f, g, h, s, t, N=N):
         polynomial((0, -1), N=N_),
         N=N_,
     )
+    print("b: ", b)
     sb = mul_polynomial(s, b, N=N_)
+    print("sb: ", sb)
     c, d = mod_polynomial(sb, h_, N=N_)
+    print("c: ", c)
+    print("d: ", d)
     s_ = sub_polynomial(s, d, N=N_)
+    print("s_: ", s_)
     t_ = sub_polynomial(
         t,
         add_polynomial(
@@ -61,8 +78,30 @@ def Hensel_step(f, g, h, s, t, N=N):
         ),
         N=N_,
     )
+    print("t_: ", t_)
+
+    print("f: ", mod_const(f, N_))
+    print(
+        "mul_polynomial(g_, h_, N=N_): ",
+        mod_const(mul_polynomial(g_, h_, N=N_), N_),
+    )
+    print("s_: ", s_)
+    print("g_: ", g_)
+    assert equal_polynomial(
+        mod_polynomial(mul_polynomial(s_, g_, N=N_), g_, N=N_)[0], s_, N=N_
+    )
+    print("t_: ", t_)
+    print("h_: ", h_)
+    assert equal_polynomial(
+        mod_polynomial(mul_polynomial(t_, h_, N=N_), h_, N=N_)[0], t_, N=N_
+    )
 
     assert equal_polynomial(f, mul_polynomial(g_, h_, N=N_), N=N_)
+    print(
+        add_polynomial(
+            mul_polynomial(s_, g_, N=N_), mul_polynomial(h_, t_, N=N_), N=N_
+        )
+    )
     assert equal_polynomial(
         polynomial((0, 1), N=N_),
         add_polynomial(
@@ -148,8 +187,9 @@ if __name__ == "__main__":
         ),
     )
     """
+
+    # MULTIFACTOR HENSEL LIFTING VERIFICATION
     """
-    MULTIFACTOR HENSEL LIFTING VERIFICATION
     p_prob = polynomial()
     p_prob.set_coef(0, 21)
     p_prob.set_coef(1, 20)
@@ -163,26 +203,38 @@ if __name__ == "__main__":
     p_prob.set_coef(9, 4)
     p_rand = rand_polynomial(10)
     print("random_polynomial: ", p_prob)
+    """
+    p_prob = polynomial()
+    p_prob.set_coef(0, 2)
+    p_prob.set_coef(1, 3)
+    p_prob.set_coef(2, 4)
+    print("problem_polynomial: ", p_prob)
 
-    a = mul_inv(lc(p_prob))
-    p_norm = mul_polynomial(p_prob,polynomial((0,a)))
-    print("normalised: ",p_norm)
+    N = 13
+    l = 8
+
+    a = mul_inv(lc(p_prob), N=N)
+    p_norm = mul_polynomial(p_prob, polynomial((0, a), N=N), N=N)
+    print("normalised: ", p_norm)
 
     print("factorisation: ")
-    facs = factorise_polynomial_int_finite(p_norm)
+    facs = factorise_polynomial_int_finite(p_norm, N=N)
     for f in facs:
         print(f)
-    print("verify: ", mul_polynomial(*facs))
+    print("verify: ", mul_polynomial(*facs, N=N))
 
-
-    T = make_tree(facs)
-    a,t = Multifactor_Hensel_Lifting(N,p_prob,a,4,T)
+    T = make_tree(facs, N=N)
+    a, t = Multifactor_Hensel_Lifting(N, p_prob, a, l, T)
 
     print("a: ", a)
-    print("T.value: ",mul_polynomial(T.value,polynomial((0,mul_inv(a,N=N**4)),N=N**4)))
+    print(
+        "T.value: ",
+        mul_polynomial(
+            T.value, polynomial((0, mul_inv(a, N=N ** l)), N=N ** l)
+        ),
+    )
 
-    verification=mul_polynomial(T.L.value,T.R.value,N=N**4)
-    verification2 = mul_polynomial(T.L.L.value,T.L.R.value,T.R.L.value,T.R.R.value,N=N**4)
-    print("verify: ",verification)
-    print("verify2: ", verification2)
-    """
+    # verification=mul_polynomial(T.L.value,T.R.value,N=N**l)
+    # verification2 = mul_polynomial(T.L.L.value,T.L.R.value,T.R.L.value,T.R.R.value,N=N**4)
+    # print("verify: ",verification)
+    # print("verify2: ", verification2)

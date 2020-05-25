@@ -19,6 +19,7 @@ ATTRIBUTES
 
 METHODS
 	- get_walk(self)	- returns list of nodes at that level and below (like os.walk)
+    - get_leaves(self)  - returns list of nodes which are leaves at that level and below
 
 	- set_value(self, t1, t2, N=N) 	- sets node based on two children branches
 	- isleaf(self)					- returns bool based on whether L and R are None
@@ -73,11 +74,23 @@ class factor_tree:
 
     def get_walk(self):
         out = [self]
-        if self.R != None:
-            out += self.R.get_walk()
         if self.L != None:
             out += self.L.get_walk()
+        if self.R != None:
+            out += self.R.get_walk()
         return out
+
+    def get_leaves(self):
+        out = []
+        if self.isleaf():
+            out += [self]
+            return out
+        else:
+            if self.L != None:
+                out += self.L.get_leaves()
+            if self.R != None:
+                out += self.R.get_leaves()
+            return out
 
 
 def make_tree(factors, N=N):
@@ -106,7 +119,7 @@ def make_tree(factors, N=N):
 
     for i in range(len(others) - 1, 0, -1):
         node_new = factor_tree()
-        node_new.set_value(others[i - 1][0], others[i][0])
+        node_new.set_value(others[i - 1][0], others[i][0], N=N)
         others = others[:-2]
         others.append((node_new, 0))
 

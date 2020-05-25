@@ -132,6 +132,7 @@ class vector:
         return np.inner(self.val, self.val)
 
 
+# 16.10
 def basis_reduction(b):
     assert np.all(np.equal(np.mod(b.mat, 1), 0))
 

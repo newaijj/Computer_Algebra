@@ -65,8 +65,10 @@ def equal_degree_splitting(p, d, N=N):
 
     g2 = extended_euclidean(b, p, N=N)[3]
     if (
-        not equal_polynomial(polynomial((0, 1), N=N), g1, N=N)
-        and equal_polynomial(p, g2, N=N)
+        not (
+            equal_polynomial(polynomial((0, 1), N=N), g1, N=N)
+            or equal_polynomial(p, g2, N=N)
+        )
         and g2.degree > 0
     ):
         g2 = mul_polynomial(
@@ -87,7 +89,7 @@ def equal_degree_factorisation(p, d, N=N):
     while True:
         try:
             fac = equal_degree_splitting(p, d, N=N)
-            assert fac.degree > 0
+            assert fac.degree == d
         except UnluckyStartError:
             continue
         break
@@ -160,7 +162,10 @@ def factorise_polynomial_int_finite(p, N=N):
 
 if __name__ == "__main__":
 
-    p0 = polynomial()
+    p_prob = polynomial(N=29)
+    p_prob.set_coef(0, 15)
+    p_prob.set_coef(1, 8)
+    p_prob.set_coef(2, 1)
     p3 = polynomial()
     p3.set_coef(0, 2)
     p3.set_coef(1, 3)
@@ -170,18 +175,11 @@ if __name__ == "__main__":
     p4.set_coef(1, 3)
     p4.set_coef(2, 3)
     p4.set_coef(3, 1)
-    p_prob = polynomial()
-    p_prob.set_coef(0, 4)
-    p_prob.set_coef(1, 2)
-    p_prob.set_coef(2, 22)
-    p_prob.set_coef(3, 19)
-    p_prob.set_coef(4, 16)
-    p_prob.set_coef(5, 16)
     # print("p3:", p3)
     p_rand = rand_polynomial(6)
-    print("random_polynomial: ", p_rand)
+    print("random_polynomial: ", p_prob)
     print("factorisation: ")
-    facs = factorise_polynomial_int_finite(p_rand)
+    facs = factorise_polynomial_int_finite(p_prob, N=N)
 
     for f in facs:
         print(f)

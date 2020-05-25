@@ -20,14 +20,19 @@ CLASS IMPLEMENTED: POLYNOMIAL
     - update_degree(power=None) - checks if degree needs to be updated. If power is specified, checks if that power is larger than current degree and sets it if it is
     - copy_meta()               - returns polynomial with copy of all meta variables but empty coefficients
     - update_N(N)               - updates self.N if N is bigger than self.N
-    - max_norm                  - return max_norm (max coefficient)
-    - lc                        - wrapper for lc function
+    - max_norm()                - return max_norm (max coefficient)
+    - lc()                      - wrapper for lc function
+    - cont()                    - return content (gcd of coefficients)
+    - pp()                      - returns principle part (self / self.cont())
+    - one_norm()                - returns 1-norm (sum of coefficients)
 
 - FUNCTIONS - POLYNOMIAL
     - add_polynomial()                      - accepts any number of polynomial objects as input
     - mul_polynomial()                      - accepts any number of polynomial objects as input
     - sub_polynomial(p1,p2,N=N)             - (p1 - p2)
+    - div_const(p,n)
     - mod_polynomial(p1,p2,N=N)             - (p1 % p2); returns (p_quotient , p_remainder) given global N
+    - mod_const(p,n)
     - exp_polynomial(p,e,N=N)               - returns (p^e), e must be integer
     - exp_polynomial_rem(p, e, f,N=N)       - returns (p^e mod f), e must be integer, p and f must be polynomials
     - gcd_polynomial(p1, p2, N=N)           - return GCD of the two polynomials given global N
@@ -113,14 +118,18 @@ def mul_inv(a, N=N):
         times = int(other / cur)
         other -= times * cur
         other_coef -= times * cur_coef
-        """
-        while other >= cur:
-            other  cur
-            other_coef -= cur_coef
-        """
         other, cur = cur, other
         other_coef, cur_coef = cur_coef, other_coef
     return other_coef[0] % N
+
+
+def div_const(p, n):
+    assert isinstance(p, polynomial) and float(n).is_integer()
+    p_ = p.copy_meta()
+
+    for i in range(p.degree + 1):
+        p_.set_coef(i, p.get_coef(i) / n)
+    return p_
 
 
 def mod_polynomial(p1, p2, N=N):
@@ -138,6 +147,15 @@ def mod_polynomial(p1, p2, N=N):
         p_r = sub_polynomial(p_r, mul_polynomial(p2, p_fac, N=N), N=N)
 
     return p_q, p_r
+
+
+def mod_const(p, n):
+    assert isinstance(p, polynomial) and float(n).is_integer()
+    p_ = p.copy_meta()
+
+    for i in range(p.degree + 1):
+        p_.set_coef(i, p.get_coef(i) % n)
+    return p_
 
 
 # exponent by repeated squaring
@@ -213,7 +231,7 @@ def extended_euclidean(p1, p2, N=N):
     cur = 1
     other = 0
     p_zero = polynomial(N=N)
-    while not equal_polynomial(r[other], p_zero):
+    while not equal_polynomial(r[other], p_zero, N=N):
         temp = cur
         cur = other
         other = temp
@@ -222,26 +240,36 @@ def extended_euclidean(p1, p2, N=N):
         rem = mod_polynomial(r[other], r[cur], N=N)[1]
         p[other] = polynomial((0, lc(rem)), N=N)
         r[other] = mul_polynomial(
-            polynomial((0, mul_inv(lc(rem), N=N)), N=N), rem
+            polynomial((0, mul_inv(lc(rem), N=N)), N=N), rem, N=N
         )
         s[other] = mul_polynomial(
             sub_polynomial(s[other], mul_polynomial(s[cur], q[cur], N=N), N=N),
-            polynomial((0, mul_inv(p[other].get_coef(0), N=N))),
+            polynomial((0, mul_inv(p[other].get_coef(0), N=N)), N=N),
             N=N,
         )
         t[other] = mul_polynomial(
             sub_polynomial(t[other], mul_polynomial(t[cur], q[cur], N=N), N=N),
-            polynomial((0, mul_inv(p[other].get_coef(0), N=N))),
+            polynomial((0, mul_inv(p[other].get_coef(0), N=N)), N=N),
             N=N,
         )
 
     return p[cur], s[cur], t[cur], r[cur]
 
 
+def gcd_int(a, b):
+    if b > a:
+        b, a = a, b
+    while b != 0:
+        t = b
+        b = a % b
+        a = t
+    return a
+
+
 class polynomial:
     # polynomial up to 64 terms
     def __init__(self, initial=None, size=64, N=N):
-        self.coef = np.zeros(size)
+        self.coef = np.zeros(size)  # ,dtype=np.longdouble)
         self.size = size
         self.degree = 0
         self.N = N
@@ -291,6 +319,18 @@ class polynomial:
 
     def lc(self):
         return lc(self)
+
+    def cont(self):
+        out = self.get_coef(0)
+        for i in range(1, self.degree + 1):
+            out = gcd_int(out, self.get_coef(i))
+        return out
+
+    def pp(self):
+        return div_const(self, self.cont())
+
+    def one_norm(self):
+        return np.sum(self.coef[0 : self.degree + 1])
 
     def __str__(self):
         nzero = np.nonzero(self.coef)
