@@ -55,7 +55,7 @@ def add_polynomial(*args, N=N):
     p_out = polynomial(size=max_size, N=N)
 
     for p in args:
-        out = np.zeros(max_size, dtype=object)
+        out = np.zeros(max_size)
         out[0 : (p.degree + 1)] = p.coef[0 : (p.degree + 1)]
         p_out.coef += out
         p_out.coef = p_out.coef % N
@@ -110,8 +110,8 @@ def mul_polynomial(*args, N=N):
 def mul_inv(a, N=N):
     a = a % N
     assert a >= 0
-    other_coef = np.array([0, 1], dtype=object)
-    cur_coef = np.array([1, 0], dtype=object)
+    other_coef = np.array([0, 1])
+    cur_coef = np.array([1, 0])
     other = N
     cur = a
     while cur != 0:
@@ -269,7 +269,7 @@ def gcd_int(a, b):
 class polynomial:
     # polynomial up to 64 terms
     def __init__(self, initial=None, size=64, N=N):
-        self.coef = np.zeros(size, dtype=object)
+        self.coef = np.zeros(size)  # ,dtype=np.longdouble)
         self.size = size
         self.degree = 0
         self.N = N
@@ -283,14 +283,6 @@ class polynomial:
         p.degree = self.degree
         p.N = self.N
         return p
-
-    def debug(self):
-        out = "debug polynomial\n"
-        out += "coef: " + self.coef.__str__() + "\n"
-        out += "size: " + self.size.__str__() + "\n"
-        out += "degree: " + self.degree.__str__() + "\n"
-        out += "N: " + self.N.__str__() + "\n"
-        return out
 
     def update_N(N):
         assert float(N).is_integer() or N == None
@@ -360,7 +352,7 @@ class polynomial:
 
 
 if __name__ == "__main__":
-
+    """
     p3 = polynomial()
     p3.set_coef(0, 2)
     p3.set_coef(1, 3)
@@ -393,6 +385,7 @@ if __name__ == "__main__":
     print(add_polynomial(mul_polynomial(p1, s), mul_polynomial(p2, t)))
 
     print(polynomial((0, -1)))
+    """
 
     # 18.0x^0 + 2.0x^1  14.0x^0
     # print("p2-p1", *mod_polynomial(p2, p1))

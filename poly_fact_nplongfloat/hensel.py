@@ -63,9 +63,14 @@ def Hensel_step(f, g, h, s, t, N=N):
         polynomial((0, -1), N=N_),
         N=N_,
     )
+    print("b: ", b)
     sb = mul_polynomial(s, b, N=N_)
+    print("sb: ", sb)
     c, d = mod_polynomial(sb, h_, N=N_)
+    print("c: ", c)
+    print("d: ", d)
     s_ = sub_polynomial(s, d, N=N_)
+    print("s_: ", s_)
     t_ = sub_polynomial(
         t,
         add_polynomial(
@@ -73,8 +78,30 @@ def Hensel_step(f, g, h, s, t, N=N):
         ),
         N=N_,
     )
+    print("t_: ", t_)
+
+    print("f: ", mod_const(f, N_))
+    print(
+        "mul_polynomial(g_, h_, N=N_): ",
+        mod_const(mul_polynomial(g_, h_, N=N_), N_),
+    )
+    print("s_: ", s_)
+    print("g_: ", g_)
+    assert equal_polynomial(
+        mod_polynomial(mul_polynomial(s_, g_, N=N_), g_, N=N_)[0], s_, N=N_
+    )
+    print("t_: ", t_)
+    print("h_: ", h_)
+    assert equal_polynomial(
+        mod_polynomial(mul_polynomial(t_, h_, N=N_), h_, N=N_)[0], t_, N=N_
+    )
 
     assert equal_polynomial(f, mul_polynomial(g_, h_, N=N_), N=N_)
+    print(
+        add_polynomial(
+            mul_polynomial(s_, g_, N=N_), mul_polynomial(h_, t_, N=N_), N=N_
+        )
+    )
     assert equal_polynomial(
         polynomial((0, 1), N=N_),
         add_polynomial(
@@ -184,7 +211,7 @@ if __name__ == "__main__":
     print("problem_polynomial: ", p_prob)
 
     N = 13
-    l = 5
+    l = 8
 
     a = mul_inv(lc(p_prob), N=N)
     p_norm = mul_polynomial(p_prob, polynomial((0, a), N=N), N=N)

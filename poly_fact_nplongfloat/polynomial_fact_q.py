@@ -68,15 +68,10 @@ def poly_fact_z(f):
             f_bar = mod_const(f, p)
             assert p <= 2 * y * np.log(y)
         l = np.ceil(np.log(2 ** (n ** 2) * B ** (2 * n)) / np.log(p))
-        print("l: ", l)
-
         i = 0
-        """
         while l >= 2 ** i:
             i += 1
         l = 2 ** i
-        print("l: ",l)
-        """
 
         logger.debug("#2 completed: possible p={}".format(p))
 
@@ -86,16 +81,14 @@ def poly_fact_z(f):
 
         i = 0
         while i < 100:
-            i += 1
-
             h_list = factorise_polynomial_int_finite(f_lc, N=p)
             cond = True
             for h in h_list:
                 if h.max_norm() > (p / 2):
                     cond = False
-            if not cond:
-                continue
-
+            if cond:
+                break
+            i += 1
         if cond:
             break
 
@@ -108,6 +101,11 @@ def poly_fact_z(f):
         logger.debug(h)
 
     # 4
+    print("l: ", l)
+    print("f: ", f)
+    print("mul_inv(b, N=p): ", mul_inv(b, N=p))
+    print("p: ", p)
+
     f_tree = make_tree(h_list, N=p)
     _, f_tree = Multifactor_Hensel_Lifting(p, f, mul_inv(b, N=p), l, f_tree)
     g = [t.value for t in f_tree.get_leaves()]
@@ -115,8 +113,8 @@ def poly_fact_z(f):
         print("p: ", p)
         print(gi)
         print(hi)
-        assert equal_polynomial(gi, hi, N=p)
         assert gi.max_norm() < p ** l / 2
+        assert equal_polynomial(gi, hi, N=p)
 
     logger.debug("#4 completed")
 
